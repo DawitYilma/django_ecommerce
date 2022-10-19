@@ -3,9 +3,15 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 import datetime
+from ecommerce.forms import CustomerForm
 
 from .models import *
 from .utils import cookieCart, cartData, guestOrder
+
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -35,6 +41,56 @@ def checkout(request):
     items = data['items']
     context = {'items': items, 'order': order, 'cartItems': cartItems}
     return render(request, 'store/checkout.html', context)
+
+def register(request):
+    data = cartData(request)
+    cartItems = data['cartItems']
+
+    registered = False
+
+    if request.method == "POST":
+        customer_form = CustomerForm(data=request.POST)
+
+        if customer_form.is_valid():
+            customer = customer_form.save()
+            customer.set_password(customer.password)
+            customer.save()
+            create = Customer.objects.create(user=customer, name=customer.username, email=customer.email)
+            registered = True
+            return HttpResponseRedirect(reverse('customer_login'))
+        else:
+            print(customer_form.errors)
+    else:
+        customer_form = CustomerForm()
+    context = {'cartItems': cartItems, 'customer_form': customer_form,
+                            'registered': registered}
+    
+    return render(request, 'store/registration.html', context)
+def customer_logout(request):
+    logout(request)
+    return HttpResponseRedirect(reverse('store'))
+
+def customer_login(request):
+    data = cartData(request)
+    cartItems = data['cartItems']
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        customer = authenticate(username=username, password=password)
+        
+        if customer:
+            if customer.is_active:
+                login(request, customer)
+
+                return HttpResponseRedirect(reverse('store'))
+            else:
+                return HttpResponse("Account Is Not Active")
+        else:
+            return HttpResponse('Invalid login details supplied!')
+    else:
+        context = {'cartItems': cartItems,}
+        return render(request, 'store/login.html', context)
 
 def updateItem(request):
     data = json.loads(request.body)
