@@ -1,6 +1,6 @@
 from itertools import product
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 import json
 import datetime
 from ecommerce.forms import CustomerForm
@@ -41,6 +41,19 @@ def checkout(request):
     items = data['items']
     context = {'items': items, 'order': order, 'cartItems': cartItems}
     return render(request, 'store/checkout.html', context)
+
+def product(request, name):
+    data = cartData(request)
+    cartItems = data['cartItems']
+    try:
+        product = Product.objects.get(name=name)
+    except:
+        raise Http404
+    context = {
+        'product': product,
+        'cartItems': cartItems
+        }
+    return render(request, 'store/product.html', context)
 
 def register(request):
     data = cartData(request)

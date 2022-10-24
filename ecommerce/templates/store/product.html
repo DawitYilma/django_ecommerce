@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
 	<div class="row">
-		{% for product in products %}
 		<div class="col-lg-4">
 			<img class="thumbnail" src="{{product.imageURL}}">
 			<div class="box-element product">
@@ -10,13 +9,14 @@
 				<hr>
 
 				<button data-product="{{product.id}}" data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
-				
-				<a class="btn btn-outline-success" href="{% url 'product' product.name %}">View</a>
 				<h4 style="display: inline-block; float: right"><strong>${{product.price}}</strong></h4>
 
 			</div>
 		</div>
-		{% endfor %}
+        <div class="col-lg-4">
+            <h4>Description:</h4>
+            <p>{{product.description}}</p>
+        </div>
 	</div>
 
 {% endblock content %}
