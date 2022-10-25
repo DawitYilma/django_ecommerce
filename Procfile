@@ -1,0 +1,1 @@
+web gunicorn daw_django_ecommerce.wsgi:application --log-file -
